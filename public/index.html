@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Chat</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: #f5f5f5; /* Light gray background */
+    }
+
+    #messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        border-bottom: 1px solid #ccc;
+        background-color: #ffffff; /* White background for messages */
+        border-radius: 8px; /* Rounded corners */
+        margin: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        display: flex;
+        flex-direction: column;
+    }
+
+    #input-area {
+        display: flex;
+        padding: 16px;
+        background-color: #ffffff; /* White background for input area */
+        border-top: 1px solid #ccc;
+    }
+
+    #messageInput {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 24px; /* Rounded corners for input */
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Smooth focus effect */
+    }
+
+    #messageInput:focus {
+        border-color: #007bff; /* Highlight border on focus */
+    }
+
+    #sendButton {
+        padding: 12px 24px;
+        margin-left: 10px;
+        background-color: #007bff; /* Blue button */
+        color: white;
+        border: none;
+        border-radius: 24px; /* Rounded corners for button */
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease; /* Smooth hover effect */
+    }
+
+    #sendButton:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+
+    .message {
+        margin-bottom: 12px;
+        padding: 10px;
+        border-radius: 8px; /* Rounded corners for messages */
+        max-width: 70%; /* Limit width for better readability */
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word; /* Ensure long words wrap */
+    }
+
+    .message.user {
+        text-align: left;
+        background-color: #e9ecef; /* Light gray for user messages */
+        color: #333333;
+        align-self: flex-start; /* Align user messages to the left */
+    }
+
+    .message.support {
+        text-align: right;
+        background-color: #007bff; /* Blue for support messages */
+        color: white;
+        align-self: flex-end; /* Align support messages to the right */
+    }
+</style>
+</head>
+<body>
+    <div id="messages"></div>
+    <div id="input-area">
+        <input type="text" id="messageInput" placeholder="Type your reply here">
+        <button id="sendButton">Send</button>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Fetch messages every 2 seconds
+        function fetchMessages() {
+            fetch('/client/get-messages')
+                .then(response => response.json())
+                .then(messages => {
+                    messagesDiv.innerHTML = '';
+                    messages.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = `message ${msg.sender === 'User' ? 'user' : 'support'}`;
+                        div.textContent = `${msg.sender}: ${msg.message}`;
+                        messagesDiv.appendChild(div);
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom
+                });
+        }
+
+        setInterval(fetchMessages, 2000);
+
+        // Send reply
+        sendButton.addEventListener('click', () => {
+    const messageText = messageInput.value.trim();
+    if (messageText) {
+        fetch('/client/send-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sender: 'Support', message: messageText })
+        }).then(() => {
+            messageInput.value = ''; // Clear input field
+        });
+    }
+});
+    </script>
+</body>
+</html>
